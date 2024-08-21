@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111111;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #ae00ff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .tarefa {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .tarefa input[type="text"] {
+            width: 60%;
+            padding: 5px;
+        }
+        .tarefa select {
+            padding: 5px;
+            width: 150px; 
+        }
+        .tarefa button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            border: none;
+            background-color: #111111;
+            color: #fff;
+            cursor: pointer;
+        }
+        .tarefa button:hover {
+            background-color: #0056b3;
+        }
+        .adicionar-tarefa {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .adicionar-tarefa input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>(TENTANDO) me organizar 😊</h2>
+        <div class="adicionar-tarefa">
+            <input type="text" id="novaTarefa" placeholder="Adicionar nova tarefa">
+            <button onclick="adicionarTarefa()">Adicionar</button>
+        </div>
+        <div id="listaDeTarefas"></div>
+    </div>
+
+    <script>
+        let listaDeTarefas = JSON.parse(localStorage.getItem('tarefas')) || [];
+
+        function adicionarTarefa() {
+            const entradaTarefa = document.getElementById("novaTarefa");
+            const textoTarefa = entradaTarefa.value.trim();
+            if (textoTarefa === "") return;
+
+            const tarefa = {
+                texto: textoTarefa,
+                status: "Não executado"
+            };
+            listaDeTarefas.push(tarefa);
+            entradaTarefa.value = "";
+            atualizarLocalStorage();
+            renderizarTarefas();
+        }
+
+        function renderizarTarefas() {
+            document.getElementById("listaDeTarefas").innerHTML = "";
+
+            listaDeTarefas.forEach((tarefa, indice) => {
+                const elementoTarefa = document.createElement("div");
+                elementoTarefa.className = "tarefa";
+
+                const entradaTextoTarefa = document.createElement("input");
+                entradaTextoTarefa.type = "text";
+                entradaTextoTarefa.value = tarefa.texto;
+                entradaTextoTarefa.onchange = (event) => atualizarTextoTarefa(indice, event.target.value);
+
+                const selecionarStatusTarefa = document.createElement("select");
+                const status = ["Em andamento", "Finalizado", "Não executado"];
+                status.forEach(st => {
+                    const opcao = document.createElement("option");
+                    opcao.value = st;
+                    opcao.textContent = st;
+                    if (st === tarefa.status) opcao.selected = true;
+                    selecionarStatusTarefa.appendChild(opcao);
+                });
+                selecionarStatusTarefa.onchange = (event) => atualizarStatusTarefa(indice, event.target.value);
+
+                const botaoDeletar = document.createElement("button");
+                botaoDeletar.textContent = "Deletar";
+                botaoDeletar.onclick = () => deletarTarefa(indice);
+
+                elementoTarefa.appendChild(entradaTextoTarefa);
+                elementoTarefa.appendChild(selecionarStatusTarefa);
+                elementoTarefa.appendChild(botaoDeletar);
+
+                document.getElementById("listaDeTarefas").appendChild(elementoTarefa);
+            });
+        }
+
+        function atualizarTextoTarefa(indice, novoTexto) {
+            listaDeTarefas[indice].texto = novoTexto;
+            atualizarLocalStorage();
+            renderizarTarefas();
+        }
+
+        function atualizarStatusTarefa(indice, novoStatus) {
+            listaDeTarefas[indice].status = novoStatus;
+            atualizarLocalStorage();
+            renderizarTarefas();
+        }
+
+        function deletarTarefa(indice) {
+            listaDeTarefas.splice(indice, 1);
+            atualizarLocalStorage();
+            renderizarTarefas();
+        }
+
+        function atualizarLocalStorage() {
+            localStorage.setItem('tarefas', JSON.stringify(listaDeTarefas));
+        }
+
+        renderizarTarefas();
+    </script>
+
+</body>
+</html>
